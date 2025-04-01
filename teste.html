@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Mapa do Cemitério com OpenLayers</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.5.0/ol.css">
+    <script src="https://cdn.jsdelivr.net/npm/ol@v10.5.0/dist/ol.js"></script>
+    <style>
+        #map {
+            width: 800px;
+            height: 600px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script>
+        // Inicializa o mapa
+        var style = new ol.style.Style({
+            fill: new ol.style.Fill({
+                color: 'rgba(200, 200, 200, 0.5)'
+            }),
+            stroke: new ol.style.Stroke({
+                color: 'rgba(200, 200, 200, 0.5)',
+                width: 2
+            }),
+            image: new ol.style.Circle({
+                radius: 7,
+                fill: new ol.style.Fill({
+                    color: '#ff0000'
+                })
+            }),
+            text: new ol.style.Text({
+                font: '12px Calibri,sans-serif',
+                fill: new ol.style.Fill({
+                    color: '#000'
+                }),
+                stroke: new ol.style.Stroke({
+                    color: '#fff',
+                    width: 3
+                })
+            })
+        })
+        var map = new ol.Map({
+            target: 'map',
+            layers: [
+                new ol.layer.Image({
+                    source: new ol.source.ImageStatic({
+                        url: 'teste.png', // Caminho da sua ortofoto
+                        projection: 'EPSG:4326', // Projeção da sua ortofoto
+                        imageExtent: [-40.3082069390000015, -20.1297681623999978, -40.3079619121999997, -20.1295048289999983] // Coordenadas dos cantos da ortofoto
+                    })
+                }),
+                new ol.layer.Vector({
+                    source: new ol.source.Vector({
+                        url: 'SEPULTURAS.geojson', // Caminho do GeoJSON
+                        format: new ol.format.GeoJSON()
+                    }),
+                    style: function (feature) {
+                        style.getText().setText(feature.get('sepultura'));
+                        return style;
+                    }
+
+                })
+            ],
+            view: new ol.View({
+                center: ol.proj.fromLonLat([-40.30806852, -20.12962127]), // Coordenadas do centro do mapa
+                zoom: 22
+                // Nível de zoom inicial
+            })
+        });
+
+        // Adiciona um popup para exibir informações dos túmulos
+        map.on('click', function (evt) {
+            var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature) {
+                return feature;
+            });
+            if (feature) {
+                var properties = feature.getProperties();
+                var content = 'Sepultura: ' + properties.sepultura; // Usando o atributo "sepultura"
+                var popup = new ol.Overlay({
+                    element: document.createElement('div'),
+                    positioning: 'bottom-center',
+                    offset: [0, -10]
+                });
+                popup.getElement().innerHTML = content;
+                popup.setPosition(evt.coordinate);
+                map.addOverlay(popup);
+            }
+        });
+    </script>
+</body>
+
+</html>
