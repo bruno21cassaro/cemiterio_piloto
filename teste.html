@@ -97,6 +97,9 @@
         var map = new ol.Map({
             target: 'map',
             layers: [
+                new ol.layer.Tile({
+                    source: new ol.source.OSM(),
+                }),
                 new ol.layer.Image({
                     source: new ol.source.ImageStatic({
                         url: 'teste.png', // Caminho da sua ortofoto
@@ -155,7 +158,7 @@
                 const myHeaders = new Headers();
                 myHeaders.append("apikey", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0anF6b3lrbHl3ZHdpZ2NhZm9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1Mjc0NTIsImV4cCI6MjA1OTEwMzQ1Mn0.oYjP_QdptYAoHdIxRiXiKLQPNapRHhdOUGFINlQdSPM");
                 myHeaders.append("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0anF6b3lrbHl3ZHdpZ2NhZm9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1Mjc0NTIsImV4cCI6MjA1OTEwMzQ1Mn0.oYjP_QdptYAoHdIxRiXiKLQPNapRHhdOUGFINlQdSPM");
-                const data = await fetch("https://jtjqzoyklywdwigcafon.supabase.co/rest/v1/Sepulturas?select=1001", {headers: myHeaders})
+                const data = await fetch("https://jtjqzoyklywdwigcafon.supabase.co/rest/v1/Sepulturas?select=*&Falecidos=eq.1001", {headers: myHeaders})
                 const json = await data.json()
 
                 modal.style.display = "block"
