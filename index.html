@@ -17,23 +17,26 @@
 
     <div class="topbar">
         <h1>Cemitério Piloto</h1>
-        <sl-input placeholder="Pesquisa" type="search" pill></sl-input>
+        <sl-input id="search_input" placeholder="Pesquisa" type="search" pill></sl-input>
     </div>
     <div class="content">
         <div id="map"></div>
+        <div id="detalhes">
+            <div class="nome">
+                <h3 id="nome_completo"></h3>
+            </div>
+            <div class="informacoes">
+                <h4><b>Sepultura: </b><span id="numero_sepultura"></span></h4>
+                <h4><b>Data do Sepultamento: </b><span id="data_sepultamento"></span></h4>
+                <h4><b>Processo: </b><span id="numero_processo"></span></h4>
+            </div>
+        </div>
     </div>
     <div class="footer">
         <h3>Prefeitura da Cidade Piloto</h3>
         <div class="copyright"><b>Copyright</b> Engecel © 2025</div>
     </div>
 
-    <div id="detalhes" class="modal">
-        <!-- Modal content -->
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <p id="Nomes">informações sobre o jazigo</p>
-        </div>
-    </div>
 </body>
 <script>
 
@@ -63,17 +66,22 @@
             })
         })
     })
-    var map = new ol.Map({
-        target: 'map',
-        layers: [
-            new ol.layer.Tile({
+
+    var openstreetmap = new ol.layer.Tile({
                 source: new ol.source.OSM({
                     maxZoom: 19
                 }),
-            }),
+                opacity: 1,
+                background: 'black',
+            })
+
+    var map = new ol.Map({
+        target: 'map',
+        layers: [
+            openstreetmap,
             new ol.layer.Image({
                 source: new ol.source.ImageStatic({
-                    url: 'teste.png', // Caminho da sua ortofoto
+                    url: 'pilot_recort.webp', // Caminho da sua ortofoto
                     projection: 'EPSG:4326', // Projeção da sua ortofoto
                     imageExtent: [-40.3088100562450649, -20.1306286922761686, -40.3078579754000685, -20.1295048285427001] // Coordenadas dos cantos da ortofoto
                 })
@@ -122,33 +130,55 @@
         }
     });
     */
-
-    var modal = document.getElementById("detalhes");
-    var close_button = document.getElementsByClassName("close")[0];
+    const myHeaders = new Headers();
+    myHeaders.append("apikey", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0anF6b3lrbHl3ZHdpZ2NhZm9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1Mjc0NTIsImV4cCI6MjA1OTEwMzQ1Mn0.oYjP_QdptYAoHdIxRiXiKLQPNapRHhdOUGFINlQdSPM");
+    myHeaders.append("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0anF6b3lrbHl3ZHdpZ2NhZm9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1Mjc0NTIsImV4cCI6MjA1OTEwMzQ1Mn0.oYjP_QdptYAoHdIxRiXiKLQPNapRHhdOUGFINlQdSPM");
 
     map.on('click', async function (evt) {
         var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature) {
             return feature;
         });
         if (feature) {
-            const myHeaders = new Headers();
-            myHeaders.append("apikey", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0anF6b3lrbHl3ZHdpZ2NhZm9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1Mjc0NTIsImV4cCI6MjA1OTEwMzQ1Mn0.oYjP_QdptYAoHdIxRiXiKLQPNapRHhdOUGFINlQdSPM");
-            myHeaders.append("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0anF6b3lrbHl3ZHdpZ2NhZm9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1Mjc0NTIsImV4cCI6MjA1OTEwMzQ1Mn0.oYjP_QdptYAoHdIxRiXiKLQPNapRHhdOUGFINlQdSPM");
-            const data = await fetch("https://jtjqzoyklywdwigcafon.supabase.co/rest/v1/Sepulturas?select=*&sepultura=eq.1001", { headers: myHeaders })
+            const data = await fetch("https://jtjqzoyklywdwigcafon.supabase.co/rest/v1/Falecidos?select=*&sepultura=eq.1001", { headers: myHeaders })
             const json = await data.json()
-
-            modal.style.display = "block"
+            console.log(json)
         }
     })
 
-    window.onclick = function (event) {
-        if (event.target == modal) {
-            modal.style.display = "none";
+    var search = document.getElementById("search_input")
+
+    var detalhes = document.getElementById("detalhes")
+    var nome = document.getElementById("nome_completo")
+    var numero_sepultura = document.getElementById("numero_sepultura")
+    var data_sepultamento = document.getElementById("data_sepultamento")
+    var numero_processo = document.getElementById("numero_processo")
+
+    search.addEventListener("sl-input", searchName)
+
+    async function searchName(e) {
+        if (e.target.value.length >= 3) {
+            var data = await fetch(`https://jtjqzoyklywdwigcafon.supabase.co/rest/v1/Falecidos?select=*&nome=ilike.*${e.target.value}*`, { headers: myHeaders })
+            var json = await data.json()
+            console.log(json)
+            nome.innerText = json[0].nome
+            numero_sepultura.innerText = json[0].sepultura
+            data_sepultamento.innerText = json[0].data_sepultamento
+            numero_processo.innerText = json[0].processo
+            openstreetmap.set("opacity", 0.5)
+            detalhes.style.display = 'block'
+            return
         }
+        nome.innerText = null
+        numero_sepultura.innerText = null
+        data_sepultamento.innerText = null
+        numero_processo.innerText = null
+        openstreetmap.set("opacity", 1)
+        detalhes.style.display = 'none'
     }
-    close_button.onclick = function () {
-        modal.style.display = "none";
-    }
+
+
+
+
 </script>
 <style>
     html,
@@ -181,7 +211,7 @@
     h3,
     .copyright {
         margin-inline: 1rem;
-        color: var(--sl-color-green-200);
+        color: var(--sl-color-emerald-400);
     }
 
     sl-input {
@@ -189,44 +219,25 @@
     }
 
     .content {
+        position: relative;
         flex-grow: 1;
+        display: flex;
     }
+    
 
     #map {
         width: 100%;
         height: 100%;
     }
 
-    .modal {
-        display: none;
-        /* Hidden by default */
-        position: fixed;
-        /* Stay in place */
-        z-index: 1;
-        /* Sit on top */
-        left: 0;
+    #detalhes {
+        position: absolute;
         top: 0;
-        width: 100%;
-        /* Full width */
-        height: 100%;
-        /* Full height */
-        overflow: auto;
-        /* Enable scroll if needed */
-        background-color: rgb(0, 0, 0);
-        /* Fallback color */
-        background-color: rgba(0, 0, 0, 0.4);
-        /* Black w/ opacity */
-    }
-
-    /* Modal Content/Box */
-    .modal-content {
-        background-color: #fefefe;
-        margin: 15% auto;
-        /* 15% from the top and centered */
-        padding: 20px;
-        border: 1px solid #888;
-        width: 80%;
-        /* Could be more or less, depending on screen size */
+        right: 0;
+        bottom: 0;
+        display: none;
+        padding: 1rem;
+        background-color: rgba(68, 226, 129, 0.8);
     }
 </style>
 
