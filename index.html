@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Cemitério Piloto</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/themes/light.css" />
+    <script type="module"
+        src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.1/cdn/shoelace-autoloader.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.5.0/ol.css">
+    <script src="https://cdn.jsdelivr.net/npm/ol@v10.5.0/dist/ol.js"></script>
+
+</head>
+
+<body>
+
+    <div class="topbar">
+        <h1>Cemitério Piloto</h1>
+        <sl-input placeholder="Pesquisa" type="search" pill></sl-input>
+    </div>
+    <div class="content">
+        <div id="map"></div>
+    </div>
+    <div class="footer">
+        <h3>Prefeitura da Cidade Piloto</h3>
+        <div class="copyright"><b>Copyright</b> Engecel © 2025</div>
+    </div>
+
+    <div id="detalhes" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <p id="Nomes">informações sobre o jazigo</p>
+        </div>
+    </div>
+</body>
+<script>
+
+    // Inicializa o mapa
+    var style = new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(200, 200, 200, 0.5)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: 'rgba(200, 200, 200, 0.5)',
+            width: 2
+        }),
+        image: new ol.style.Circle({
+            radius: 7,
+            fill: new ol.style.Fill({
+                color: '#ff0000'
+            })
+        }),
+        text: new ol.style.Text({
+            font: '12px Calibri,sans-serif',
+            fill: new ol.style.Fill({
+                color: '#000'
+            }),
+            stroke: new ol.style.Stroke({
+                color: '#fff',
+                width: 3
+            })
+        })
+    })
+    var map = new ol.Map({
+        target: 'map',
+        layers: [
+            new ol.layer.Tile({
+                source: new ol.source.OSM({
+                    maxZoom: 19
+                }),
+            }),
+            new ol.layer.Image({
+                source: new ol.source.ImageStatic({
+                    url: 'teste.png', // Caminho da sua ortofoto
+                    projection: 'EPSG:4326', // Projeção da sua ortofoto
+                    imageExtent: [-40.3088100562450649, -20.1306286922761686, -40.3078579754000685, -20.1295048285427001] // Coordenadas dos cantos da ortofoto
+                })
+            }),
+            new ol.layer.Vector({
+                source: new ol.source.Vector({
+                    url: 'SEPULTURAS.geojson', // Caminho do GeoJSON
+                    format: new ol.format.GeoJSON()
+                }),
+                style: function (feature) {
+                    style.getText().setText(feature.get('sepultura'));
+                    return style;
+                }
+
+            })
+        ],
+        view: new ol.View({
+            center: ol.proj.fromLonLat([-40.30806852, -20.12962127]), // Coordenadas do centro do mapa
+            zoom: 21,
+            maxZoom: 23,
+            minZoom: 15
+            // Nível de zoom inicial
+        })
+    });
+
+    const zoomslider = new ol.control.ZoomSlider();
+    map.addControl(zoomslider);
+
+    // Adiciona um popup para exibir informações dos túmulos
+    /*
+    map.on('click', function (evt) {
+        var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature) {
+            return feature;
+        });
+        if (feature) {
+            var properties = feature.getProperties();
+            var content = 'Sepultura: ' + properties.sepultura; // Usando o atributo "sepultura"
+            var popup = new ol.Overlay({
+                element: document.createElement('div'),
+                positioning: 'bottom-center',
+                offset: [0, -10]
+            });
+            popup.getElement().innerHTML = content;
+            popup.setPosition(evt.coordinate);
+            map.addOverlay(popup);
+        }
+    });
+    */
+
+    var modal = document.getElementById("detalhes");
+    var close_button = document.getElementsByClassName("close")[0];
+
+    map.on('click', async function (evt) {
+        var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature) {
+            return feature;
+        });
+        if (feature) {
+            const myHeaders = new Headers();
+            myHeaders.append("apikey", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0anF6b3lrbHl3ZHdpZ2NhZm9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1Mjc0NTIsImV4cCI6MjA1OTEwMzQ1Mn0.oYjP_QdptYAoHdIxRiXiKLQPNapRHhdOUGFINlQdSPM");
+            myHeaders.append("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0anF6b3lrbHl3ZHdpZ2NhZm9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1Mjc0NTIsImV4cCI6MjA1OTEwMzQ1Mn0.oYjP_QdptYAoHdIxRiXiKLQPNapRHhdOUGFINlQdSPM");
+            const data = await fetch("https://jtjqzoyklywdwigcafon.supabase.co/rest/v1/Sepulturas?select=*&sepultura=eq.1001", { headers: myHeaders })
+            const json = await data.json()
+
+            modal.style.display = "block"
+        }
+    })
+
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+    close_button.onclick = function () {
+        modal.style.display = "none";
+    }
+</script>
+<style>
+    html,
+    body {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .topbar,
+    .footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: var(--sl-color-green-800);
+    }
+
+    .footer>* {
+        margin-block: 0.4rem;
+    }
+
+    h1,
+    h2,
+    h3,
+    .copyright {
+        margin-inline: 1rem;
+        color: var(--sl-color-green-200);
+    }
+
+    sl-input {
+        margin-inline: 1rem;
+    }
+
+    .content {
+        flex-grow: 1;
+    }
+
+    #map {
+        width: 100%;
+        height: 100%;
+    }
+
+    .modal {
+        display: none;
+        /* Hidden by default */
+        position: fixed;
+        /* Stay in place */
+        z-index: 1;
+        /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%;
+        /* Full width */
+        height: 100%;
+        /* Full height */
+        overflow: auto;
+        /* Enable scroll if needed */
+        background-color: rgb(0, 0, 0);
+        /* Fallback color */
+        background-color: rgba(0, 0, 0, 0.4);
+        /* Black w/ opacity */
+    }
+
+    /* Modal Content/Box */
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        /* 15% from the top and centered */
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        /* Could be more or less, depending on screen size */
+    }
+</style>
+
+</html>
