@@ -22,13 +22,11 @@
     <div class="content">
         <div id="map"></div>
         <div id="detalhes">
+            <div class="details-group">
+                </sl-details>
+            </div>
             <div class="nome">
                 <h3 id="nome_completo"></h3>
-            </div>
-            <div class="informacoes">
-                <h4><b>Sepultura: </b><span id="numero_sepultura"></span></h4>
-                <h4><b>Data do Sepultamento: </b><span id="data_sepultamento"></span></h4>
-                <h4><b>Processo: </b><span id="numero_processo"></span></h4>
             </div>
         </div>
     </div>
@@ -68,12 +66,12 @@
     })
 
     var openstreetmap = new ol.layer.Tile({
-                source: new ol.source.OSM({
-                    maxZoom: 19
-                }),
-                opacity: 1,
-                background: 'black',
-            })
+        source: new ol.source.OSM({
+            maxZoom: 19
+        }),
+        opacity: 1,
+        background: 'black',
+    })
 
     var map = new ol.Map({
         target: 'map',
@@ -110,26 +108,6 @@
     const zoomslider = new ol.control.ZoomSlider();
     map.addControl(zoomslider);
 
-    // Adiciona um popup para exibir informações dos túmulos
-    /*
-    map.on('click', function (evt) {
-        var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature) {
-            return feature;
-        });
-        if (feature) {
-            var properties = feature.getProperties();
-            var content = 'Sepultura: ' + properties.sepultura; // Usando o atributo "sepultura"
-            var popup = new ol.Overlay({
-                element: document.createElement('div'),
-                positioning: 'bottom-center',
-                offset: [0, -10]
-            });
-            popup.getElement().innerHTML = content;
-            popup.setPosition(evt.coordinate);
-            map.addOverlay(popup);
-        }
-    });
-    */
     const myHeaders = new Headers();
     myHeaders.append("apikey", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0anF6b3lrbHl3ZHdpZ2NhZm9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1Mjc0NTIsImV4cCI6MjA1OTEwMzQ1Mn0.oYjP_QdptYAoHdIxRiXiKLQPNapRHhdOUGFINlQdSPM");
     myHeaders.append("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0anF6b3lrbHl3ZHdpZ2NhZm9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1Mjc0NTIsImV4cCI6MjA1OTEwMzQ1Mn0.oYjP_QdptYAoHdIxRiXiKLQPNapRHhdOUGFINlQdSPM");
@@ -145,35 +123,42 @@
         }
     })
 
+    const container = document.querySelector('.details-group');
+
+    // Close all other details when one is shown
+    container.addEventListener('sl-show', event => {
+        if (event.target.localName === 'sl-details') {
+            [...container.querySelectorAll('sl-details')].map(details => (details.open = event.target === details));
+        }
+    });
+
     var search = document.getElementById("search_input")
 
     var detalhes = document.getElementById("detalhes")
-    var nome = document.getElementById("nome_completo")
-    var numero_sepultura = document.getElementById("numero_sepultura")
-    var data_sepultamento = document.getElementById("data_sepultamento")
-    var numero_processo = document.getElementById("numero_processo")
 
     search.addEventListener("sl-input", searchName)
 
     async function searchName(e) {
         if (e.target.value.length >= 3) {
-            var data = await fetch(`https://jtjqzoyklywdwigcafon.supabase.co/rest/v1/Falecidos?select=*&nome=ilike.*${e.target.value}*`, { headers: myHeaders })
+            var data = await fetch(`https://jtjqzoyklywdwigcafon.supabase.co/rest/v1/Falecidos?select=*&order=nome&limit=10&nome=ilike.*${e.target.value}*`, { headers: myHeaders })
             var json = await data.json()
             console.log(json)
-            nome.innerText = json[0].nome
-            numero_sepultura.innerText = json[0].sepultura
-            data_sepultamento.innerText = json[0].data_sepultamento
-            numero_processo.innerText = json[0].processo
+            container.replaceChildren()
+            json.forEach((item, index) => {
+                const detail = document.createElement("sl-details");
+                detail.setAttribute('summary', item.nome)
+                detail.innerHTML = `<h4><b>Sepultura: </b><span id="numero_sepultura">${item.sepultura}</span></h4>
+                <h4><b>Data do Sepultamento: </b><span id="data_sepultamento">${item.data_sepultamento}</span></h4>
+                <h4><b>Processo: </b><span id="numero_processo">${item.processo}</span></h4>`
+                container.appendChild(detail)
+            })
             openstreetmap.set("opacity", 0.5)
             detalhes.style.display = 'block'
             return
         }
-        nome.innerText = null
-        numero_sepultura.innerText = null
-        data_sepultamento.innerText = null
-        numero_processo.innerText = null
         openstreetmap.set("opacity", 1)
         detalhes.style.display = 'none'
+        container.replaceChildren()
     }
 
 
@@ -223,7 +208,7 @@
         flex-grow: 1;
         display: flex;
     }
-    
+
 
     #map {
         width: 100%;
@@ -238,6 +223,10 @@
         display: none;
         padding: 1rem;
         background-color: rgba(68, 226, 129, 0.8);
+    }
+
+    .details-group sl-details:not(:last-of-type) {
+        margin-bottom: var(--sl-spacing-2x-small);
     }
 </style>
 
