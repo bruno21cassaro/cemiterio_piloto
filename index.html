@@ -39,7 +39,7 @@
 <script>
 
     // Inicializa o mapa
-    var style = new ol.style.Style({
+    var default_style = new ol.style.Style({
         fill: new ol.style.Fill({
             color: 'rgba(200, 200, 200, 0.5)'
         }),
@@ -47,14 +47,8 @@
             color: 'rgba(200, 200, 200, 0.5)',
             width: 2
         }),
-        image: new ol.style.Circle({
-            radius: 7,
-            fill: new ol.style.Fill({
-                color: '#ff0000'
-            })
-        }),
         text: new ol.style.Text({
-            font: '12px Calibri,sans-serif',
+            font: '14px Calibri,sans-serif',
             fill: new ol.style.Fill({
                 color: '#000'
             }),
@@ -64,7 +58,25 @@
             })
         })
     })
-
+    var highlight_style = new ol.style.Style({
+        fill: new ol.style.Fill({
+            color: 'rgba(200, 20, 20, 0.5)'
+        }),
+        stroke: new ol.style.Stroke({
+            color: 'rgba(200, 20, 20, 0.5)',
+            width: 2
+        }),
+        text: new ol.style.Text({
+            font: '16px Calibri,sans-serif',
+            fill: new ol.style.Fill({
+                color: '#000'
+            }),
+            stroke: new ol.style.Stroke({
+                color: '#fff',
+                width: 2
+            })
+        })
+    })
     var openstreetmap = new ol.layer.Tile({
         source: new ol.source.OSM({
             maxZoom: 19
@@ -90,8 +102,8 @@
                     format: new ol.format.GeoJSON()
                 }),
                 style: function (feature) {
-                    style.getText().setText(feature.get('sepultura'));
-                    return style;
+                    default_style.getText().setText(feature.get('sepultura'));
+                    return default_style;
                 }
 
             })
@@ -112,15 +124,26 @@
     myHeaders.append("apikey", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0anF6b3lrbHl3ZHdpZ2NhZm9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1Mjc0NTIsImV4cCI6MjA1OTEwMzQ1Mn0.oYjP_QdptYAoHdIxRiXiKLQPNapRHhdOUGFINlQdSPM");
     myHeaders.append("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0anF6b3lrbHl3ZHdpZ2NhZm9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1Mjc0NTIsImV4cCI6MjA1OTEwMzQ1Mn0.oYjP_QdptYAoHdIxRiXiKLQPNapRHhdOUGFINlQdSPM");
 
+    var changed_feature = null
     map.on('click', async function (evt) {
         var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature) {
             return feature;
         });
+        changed_feature?.setStyle()
         if (feature) {
-            const data = await fetch("https://jtjqzoyklywdwigcafon.supabase.co/rest/v1/Falecidos?select=*&sepultura=eq.1001", { headers: myHeaders })
+            feature.setStyle(function (feature) {
+                highlight_style.getText().setText(feature.get('sepultura'));
+                return highlight_style;
+            }
+            )
+            var properties = feature.getProperties()
+            const data = await fetch(`https://jtjqzoyklywdwigcafon.supabase.co/rest/v1/Falecidos?select=*&sepultura=eq.${properties.sepultura}`, { headers: myHeaders })
             const json = await data.json()
             console.log(json)
+            changed_feature = feature
+            return
         }
+        
     })
 
     const container = document.querySelector('.details-group');
