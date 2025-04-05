@@ -77,6 +77,18 @@
             })
         })
     })
+
+    var graves_map = new ol.layer.Vector({
+        source: new ol.source.Vector({
+            url: 'SEPULTURAS.geojson', // Caminho do GeoJSON
+            format: new ol.format.GeoJSON()
+        }),
+        style: function (feature) {
+            default_style.getText().setText(feature.get('sepultura'));
+            return default_style;
+        }
+
+    })
     var openstreetmap = new ol.layer.Tile({
         source: new ol.source.OSM({
             maxZoom: 19
@@ -96,17 +108,7 @@
                     imageExtent: [-40.3088100562450649, -20.1306286922761686, -40.3078579754000685, -20.1295048285427001] // Coordenadas dos cantos da ortofoto
                 })
             }),
-            new ol.layer.Vector({
-                source: new ol.source.Vector({
-                    url: 'SEPULTURAS.geojson', // Caminho do GeoJSON
-                    format: new ol.format.GeoJSON()
-                }),
-                style: function (feature) {
-                    default_style.getText().setText(feature.get('sepultura'));
-                    return default_style;
-                }
-
-            })
+            graves_map
         ],
         view: new ol.View({
             center: ol.proj.fromLonLat([-40.30806852, -20.12962127]), // Coordenadas do centro do mapa
@@ -124,12 +126,12 @@
     myHeaders.append("apikey", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0anF6b3lrbHl3ZHdpZ2NhZm9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1Mjc0NTIsImV4cCI6MjA1OTEwMzQ1Mn0.oYjP_QdptYAoHdIxRiXiKLQPNapRHhdOUGFINlQdSPM");
     myHeaders.append("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0anF6b3lrbHl3ZHdpZ2NhZm9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1Mjc0NTIsImV4cCI6MjA1OTEwMzQ1Mn0.oYjP_QdptYAoHdIxRiXiKLQPNapRHhdOUGFINlQdSPM");
 
-    var changed_feature = null
+    var highlight_feature = null
     map.on('click', async function (evt) {
         var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature) {
             return feature;
         });
-        changed_feature?.setStyle()
+        highlight_feature?.setStyle()
         destroyList()
         if (feature) {
             feature.setStyle(function (feature) {
@@ -140,7 +142,7 @@
             const data = await fetch(`https://jtjqzoyklywdwigcafon.supabase.co/rest/v1/Falecidos?select=*&sepultura=eq.${properties.sepultura}`, { headers: myHeaders })
             const json = await data.json()
             console.log(json)
-            changed_feature = feature
+            highlight_feature = feature
             buildList(json)
             return
         }
@@ -170,6 +172,17 @@
             detail.innerHTML = `<h4><b>Sepultura: </b><span id="numero_sepultura">${item.sepultura}</span></h4>
                 <h4><b>Data do Sepultamento: </b><span id="data_sepultamento">${item.data_sepultamento}</span></h4>
                 <h4><b>Processo: </b><span id="numero_processo">${item.processo}</span></h4>`
+            detail.addEventListener('sl-show', e => {
+                var feature = graves_map.getSource().getFeatures().find((feature) => feature.get('sepultura') === item.sepultura)
+                feature.setStyle(function (feature) {
+                    highlight_style.getText().setText(feature.get('sepultura'));
+                    return highlight_style;
+                })
+            })
+            detail.addEventListener('sl-hide', e => {
+                var feature = graves_map.getSource().getFeatures().find((feature) => feature.get('sepultura') === item.sepultura)
+                feature.setStyle()
+            })
             container.appendChild(detail)
         })
         openstreetmap.set("opacity", 0.5)
