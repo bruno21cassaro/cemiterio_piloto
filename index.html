@@ -130,20 +130,21 @@
             return feature;
         });
         changed_feature?.setStyle()
+        destroyList()
         if (feature) {
             feature.setStyle(function (feature) {
                 highlight_style.getText().setText(feature.get('sepultura'));
                 return highlight_style;
-            }
-            )
+            })
             var properties = feature.getProperties()
             const data = await fetch(`https://jtjqzoyklywdwigcafon.supabase.co/rest/v1/Falecidos?select=*&sepultura=eq.${properties.sepultura}`, { headers: myHeaders })
             const json = await data.json()
             console.log(json)
             changed_feature = feature
+            buildList(json)
             return
         }
-        
+
     })
 
     const container = document.querySelector('.details-group');
@@ -161,27 +162,35 @@
 
     search.addEventListener("sl-input", searchName)
 
+    function buildList(json) {
+        container.replaceChildren()
+        json.forEach((item, index) => {
+            const detail = document.createElement("sl-details");
+            detail.setAttribute('summary', item.nome)
+            detail.innerHTML = `<h4><b>Sepultura: </b><span id="numero_sepultura">${item.sepultura}</span></h4>
+                <h4><b>Data do Sepultamento: </b><span id="data_sepultamento">${item.data_sepultamento}</span></h4>
+                <h4><b>Processo: </b><span id="numero_processo">${item.processo}</span></h4>`
+            container.appendChild(detail)
+        })
+        openstreetmap.set("opacity", 0.5)
+        detalhes.style.display = 'block'
+    }
+
+    function destroyList() {
+        openstreetmap.set("opacity", 1)
+        detalhes.style.display = 'none'
+        container.replaceChildren()
+    }
+
     async function searchName(e) {
         if (e.target.value.length >= 3) {
             var data = await fetch(`https://jtjqzoyklywdwigcafon.supabase.co/rest/v1/Falecidos?select=*&order=nome&limit=10&nome=ilike.*${e.target.value}*`, { headers: myHeaders })
             var json = await data.json()
             console.log(json)
-            container.replaceChildren()
-            json.forEach((item, index) => {
-                const detail = document.createElement("sl-details");
-                detail.setAttribute('summary', item.nome)
-                detail.innerHTML = `<h4><b>Sepultura: </b><span id="numero_sepultura">${item.sepultura}</span></h4>
-                <h4><b>Data do Sepultamento: </b><span id="data_sepultamento">${item.data_sepultamento}</span></h4>
-                <h4><b>Processo: </b><span id="numero_processo">${item.processo}</span></h4>`
-                container.appendChild(detail)
-            })
-            openstreetmap.set("opacity", 0.5)
-            detalhes.style.display = 'block'
+            buildList(json)
             return
         }
-        openstreetmap.set("opacity", 1)
-        detalhes.style.display = 'none'
-        container.replaceChildren()
+        destroyList()
     }
 
 
