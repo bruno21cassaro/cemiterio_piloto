@@ -44,11 +44,13 @@
             color: 'rgba(200, 200, 200, 0.5)'
         }),
         stroke: new ol.style.Stroke({
-            color: 'rgba(200, 200, 200, 0.5)',
-            width: 2
+            color: 'rgba(255, 255, 255, 0.5)',
+            width: 5
         }),
         text: new ol.style.Text({
-            font: '14px Calibri,sans-serif',
+            font: '18px Verdana, Arial, Helvetica, sans-serif',
+            declutterMode: 'declutter',
+            overflow: true,
             fill: new ol.style.Fill({
                 color: '#000'
             }),
@@ -64,10 +66,12 @@
         }),
         stroke: new ol.style.Stroke({
             color: 'rgba(200, 20, 20, 0.5)',
-            width: 2
+            width: 5
         }),
         text: new ol.style.Text({
-            font: '16px Calibri,sans-serif',
+            font: '20px Verdana, Arial, Helvetica, sans-serif',
+            declutterMode: 'declutter',
+            overflow: true,
             fill: new ol.style.Fill({
                 color: '#000'
             }),
@@ -83,6 +87,7 @@
             url: 'SEPULTURAS.geojson', // Caminho do GeoJSON
             format: new ol.format.GeoJSON()
         }),
+        minZoom: 21.5,
         style: function (feature) {
             default_style.getText().setText(feature.get('sepultura'));
             return default_style;
