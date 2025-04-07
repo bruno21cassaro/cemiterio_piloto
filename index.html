@@ -94,7 +94,6 @@
             url: 'SEPULTURAS.geojson', // Caminho do GeoJSON
             format: new ol.format.GeoJSON()
         }),
-        minZoom: 21.5,
         style: function (feature) {
             default_style.getText().setText(feature.get('sepultura'));
             return default_style;
@@ -132,7 +131,7 @@
     myHeaders.append("apikey", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0anF6b3lrbHl3ZHdpZ2NhZm9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1Mjc0NTIsImV4cCI6MjA1OTEwMzQ1Mn0.oYjP_QdptYAoHdIxRiXiKLQPNapRHhdOUGFINlQdSPM");
     myHeaders.append("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0anF6b3lrbHl3ZHdpZ2NhZm9uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1Mjc0NTIsImV4cCI6MjA1OTEwMzQ1Mn0.oYjP_QdptYAoHdIxRiXiKLQPNapRHhdOUGFINlQdSPM");
 
-    
+
     map.on('click', async function (evt) {
         var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature) {
             return feature;
@@ -151,6 +150,22 @@
 
     })
 
+    var currZoom = map.getView().getZoom();
+    map.on('moveend', function (e) {
+        var newZoom = map.getView().getZoom();
+        if (newZoom < 21.6) {
+            graves_map.setStyle(function (feature) {
+                default_style.getText().setText();
+                return default_style;
+            })
+        }
+        if (newZoom > 21.6) {
+            graves_map.setStyle(function (feature) {
+                default_style.getText().setText(feature.get('sepultura'));
+                return default_style;
+            })
+        }
+    });
     var highlighted_feature = null
 
     function setHighlight(feature) {
@@ -159,10 +174,10 @@
             return highlight_style;
         })
         highlighted_feature = feature
-            default_view.fit(feature.getGeometry(), {
-                duration: 300,
-                padding: [0, 500, 0, 0]
-            })
+        default_view.fit(feature.getGeometry(), {
+            duration: 300,
+            padding: [0, 500, 0, 0]
+        })
     }
     function removeHighlight(feature) {
         feature?.setStyle()
