@@ -16,7 +16,7 @@
 <body>
 
     <div class="topbar">
-        <h1 id="titulo">Cemitério Piloto<br/><span>Engecel Soluções</span></h1>
+        <h1 id="titulo">Cemitério Piloto<br /><span>Engecel Soluções</span></h1>
         <sl-input id="search_input" placeholder="Pesquisa" type="search" pill clearable></sl-input>
     </div>
     <div class="content">
@@ -109,7 +109,7 @@
         source: new ol.source.OSM({
             maxZoom: 19
         }),
-        opacity: 1,
+        opacity: 0.6,
         background: 'black',
     })
 
@@ -124,7 +124,19 @@
                     imageExtent: [-40.3088100562450649, -20.1306286922761686, -40.3078579754000685, -20.1295048285427001] // Coordenadas dos cantos da ortofoto
                 })
             }),
-            graves_map
+            graves_map,
+            new ol.layer.Vector({
+                source: new ol.source.Vector({
+                    url: 'Contorno.geojson', // Caminho do GeoJSON
+                    format: new ol.format.GeoJSON()
+                }),
+                style: new ol.style.Style({
+                    stroke: new ol.style.Stroke({
+                        color: 'rgba(255, 255, 255, 0.8)',
+                        width: 10
+                    })
+                })
+            })
         ],
         view: default_view
     });
@@ -138,7 +150,7 @@
 
 
     map.on('click', async function (evt) {
-        
+
         search.value = ''
         var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature) {
             return feature;
@@ -230,12 +242,12 @@
             })
             container.appendChild(detail)
         })
-        openstreetmap.set("opacity", 0.5)
+        openstreetmap.set("opacity", 0.4)
         detalhes.style.display = 'block'
     }
 
     function destroyList() {
-        openstreetmap.set("opacity", 1)
+        openstreetmap.set("opacity", 0.6)
         detalhes.style.display = 'none'
         container.replaceChildren()
         removeHighlight(highlighted_feature)
@@ -296,7 +308,7 @@
         margin: 0.2em 0 0.2em 2em;
     }
 
-    #titulo > span {
+    #titulo>span {
         font-size: 0.7em;
     }
 
@@ -339,7 +351,7 @@
         border: none;
         cursor: pointer;
         overflow: hidden;
-        height: 5lvh;
+        height: 7lvh;
         aspect-ratio: 4/3;
     }
 
@@ -348,7 +360,7 @@
         border: none;
         cursor: pointer;
         overflow: hidden;
-        height: 5lvh;
+        height: 7lvh;
         aspect-ratio: 4/3;
     }
 
