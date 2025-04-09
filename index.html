@@ -16,7 +16,7 @@
 <body>
 
     <div class="topbar">
-        <h1>Cemitério Piloto - Engecel Soluções</h1>
+        <h1 id="titulo">Cemitério Piloto<br/><span>Engecel Soluções</span></h1>
         <sl-input id="search_input" placeholder="Pesquisa" type="search" pill clearable></sl-input>
     </div>
     <div class="content">
@@ -276,7 +276,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background-color: #27496D;
+        background-color: #E1E1E1;
     }
 
     .footer>* {
@@ -288,7 +288,16 @@
     h3,
     .copyright {
         margin-inline: 1rem;
-        color: #c1dadf;
+        color: #808080;
+    }
+
+    #titulo {
+        text-align: center;
+        margin: 0.2em 0 0.2em 2em;
+    }
+
+    #titulo > span {
+        font-size: 0.7em;
     }
 
     .prefeitura {
@@ -350,7 +359,7 @@
         bottom: 0;
         display: none;
         padding: 1rem;
-        background-color: #c1dadfcc;
+        background-color: #e1e1e1cc;
         overflow-y: scroll;
     }
 
